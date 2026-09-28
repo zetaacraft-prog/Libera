@@ -1,0 +1,1576 @@
+// App.jsx
+// Libera, Inc. — Premium Corporate Website with TRUE mirror reflection (reversed text)
+
+import React, { useState, useEffect, useRef, createContext, useContext, useMemo, useCallback } from 'react';
+import { motion, AnimatePresence, useInView, useScroll, useTransform, useMotionValue, useSpring, animate } from 'framer-motion';
+
+/* ============================================================
+   i18n
+   ============================================================ */
+const locales = {
+  en: {
+    meta: { title: 'Libera — Conversational AI for Financial Operations', description: 'Libera builds conversational AI voice agents that automate financial operations across Japan.' },
+    nav: { product: 'Product', technology: 'Technology', compliance: 'Compliance', company: 'Company', careers: 'Careers', cta: 'Talk to us' },
+    hero: { status: 'Now building in Tokyo', eyebrow: 'AI × FINANCE × JAPAN', headline: 'Liberating people from financial complexity.', subheadline: 'Conversational AI agents for the future of financial operations.', description: 'Libera builds real-time AI voice agents that handle financial conversations naturally, compliantly, and at scale.', primary: 'Talk to us', secondary: 'Explore the technology' },
+    metrics: { title: 'Built for the complexity of modern finance.', items: [
+      { value: '¥40T', numeric: 40, suffix: 'T', prefix: '¥', label: 'Japanese receivables market', sub: 'Addressable opportunity' },
+      { value: 'Real-time', label: 'Conversational AI', sub: 'Sub-second reasoning' },
+      { value: 'Japan-first', label: 'Built for Japanese financial operations', sub: 'Native workflow design' },
+    ]},
+    problem: { title: 'Financial conversations are still stuck in the past.', body: 'Financial operations still depend on legacy software, manual workflows, paper communications, and call centres. Libera is a technology platform designed to modernize these workflows — replacing friction with fluent, real-time conversation.', traditional: 'Traditional', libera: 'Libera', traditionalFlow: ['Paper', 'Manual workflows', 'Call centres', 'Disconnected systems', 'Slow follow-up'], liberaFlow: ['AI conversation', 'Real-time understanding', 'Negotiation', 'Automated workflows', 'Continuous follow-up'] },
+    product: { label: 'Product', title: 'An AI agent that can actually have the conversation.', body: "Libera's agents are designed to manage financial conversations from first contact through resolution.", cards: [
+      { num: '01', title: 'Autonomous Outreach', desc: 'AI agents place outbound calls and respond to inbound conversations in fluent Japanese.' },
+      { num: '02', title: 'Real-Time Conversation', desc: 'The system listens, understands context, responds naturally, and adapts to conversations in real time.' },
+      { num: '03', title: 'Regulation-Aware Negotiation', desc: 'Agents operate within predefined policies and approved repayment terms.' },
+      { num: '04', title: 'Omnichannel Follow-Up', desc: 'Automated workflows coordinate SMS, letters, and internal records after conversations.' },
+    ]},
+    demo: { label: 'Live Demo', title: 'See the conversation happen.', badge: 'Real-time conversation', states: ['Listening', 'Understanding', 'Reasoning', 'Responding'], customerLabel: 'Customer', agentLabel: 'Libera AI', customerJa: '「今月は全額のお支払いが難しいです。」', customerTranslation: 'I may not be able to make the full payment this month.', agentJa: '「承知しました。現在の状況に合わせて、お支払い方法についてご案内いたします。」', agentTranslation: "Understood. I'll walk you through the available payment options based on your situation." },
+    tech: { label: 'Technology', title: 'Built for conversations where latency matters.', pipeline: ['VOICE', 'SPEECH RECOGNITION', 'CONVERSATION ENGINE', 'LLM', 'POLICY / COMPLIANCE', 'VOICE SYNTHESIS', 'TELEPHONY'], ecosystem: [
+      { name: 'Pipecat', role: 'Real-time voice pipeline' }, { name: 'Pipecat Flows', role: 'Structured conversation flows' }, { name: 'Soniox', role: 'Japanese speech recognition' }, { name: 'Cartesia', role: 'Low-latency voice synthesis' }, { name: 'OpenAI Models', role: 'Conversation reasoning' }, { name: 'Twilio', role: 'Telephony infrastructure' }, { name: 'Cloudflare Workers', role: 'Edge compute' }, { name: 'WebRTC / SIP', role: 'Media transport' },
+    ], tagline: 'Low latency. Real-time reasoning. Reliable execution.' },
+    compliance: { label: 'Compliance', title: 'AI for financial conversations requires more than intelligence.', statement: 'It requires control.', body: 'Financial conversations require carefully defined policies, permissions, escalation paths, logging, and compliance controls. Libera is designed to give operators the guardrails they need.', cards: [
+      { title: 'Policy Controls', desc: 'The agent operates within defined boundaries set by the business.' }, { title: 'Approved Negotiation Paths', desc: 'Conversations remain within predefined business rules and approved terms.' }, { title: 'Auditability', desc: 'Synchronized records of conversations and actions, maintained end-to-end.' }, { title: 'Human Escalation', desc: 'Controlled transfer to human operators when required.' }, { title: 'Data Security', desc: 'Enterprise-oriented security architecture for sensitive financial data.' },
+    ], note: 'Designed for regulation-aware financial workflows.' },
+    workflow: { label: 'Workflow', title: 'One conversation. Every follow-up connected.', body: 'Each stage of the workflow can remain synchronized — from the first spoken word to the final audit record.', steps: ['PHONE CALL', 'CONVERSATION OUTCOME', 'PAYMENT / PLAN', 'SMS', 'LETTER', 'SERVICER SYSTEM', 'AUDIT LOG'] },
+    japan: { label: 'Japan', headlinePrimary: 'Reimagining financial operations in Japan with AI.', headlineAccent: '日本の金融業務を、AIで再設計する。', points: ['Fluent Japanese conversations', 'Japanese financial workflows', 'Regulation-aware processes', 'Local telephony infrastructure', 'Enterprise financial operations'] },
+    company: { label: 'Company', title: 'A new infrastructure layer for financial operations.', body: 'Libera was founded in Tokyo with the mission to liberate people from financial complexity and build the foundations for AI-powered financial workflows.', facts: [
+      { label: 'Founded', value: 'July 14, 2026' }, { label: 'Headquarters', value: 'Shibuya, Tokyo' }, { label: 'Stage', value: 'Seed / Early Stage' }, { label: 'Mission', value: 'Liberate people from financial complexity' },
+    ]},
+    investors: { label: 'Partners', title: 'Building with ambitious partners.', investorsLabel: 'Investors', validationLabel: 'Validation', investors: ['ANRI', 'Coreline'], validation: ['Production pilot with a licensed servicer in Tokyo', 'Trials with major Japanese financial institutions'] },
+    careers: { label: 'Careers', title: 'Build the future of financial AI.', body: "We're building real-time conversational systems for one of the most complex operational environments in the world.", featuredLabel: 'Featured Role', recruitmentLabel: 'Recruitment', role: { title: 'Founding Voice AI Engineer', keywords: ['Pipecat', 'Voice AI', 'LLMs', 'Japanese', 'WebRTC', 'SIP', 'Twilio', 'Real-time systems'], cta: 'View open roles' }, recruit: { title: 'Want to build with us?', cta: 'See open positions' } },
+    cta: { title: "Let's build the future of financial conversations.", body: "If you're building the next generation of financial infrastructure, we'd love to talk.", primary: 'Talk to Libera', secondary: 'Join the team' },
+    footer: { tagline: 'Liberating people from financial complexity.', navLabel: 'Navigation', legalLabel: 'Legal', privacy: 'Privacy', terms: 'Terms', copyright: '© 2026 Libera, Inc.', location: 'TOKYO, JAPAN' },
+  },
+  ja: {
+    meta: { title: 'Libera — 金融業務のための対話型AI', description: 'Liberaは、日本における金融業務を自動化する、対話型AI音声エージェントを開発しています。' },
+    nav: { product: 'プロダクト', technology: 'テクノロジー', compliance: 'コンプライアンス', company: '会社概要', careers: '採用情報', cta: 'お問い合わせ' },
+    hero: { status: '東京で開発中', eyebrow: 'AI × FINANCE × JAPAN', headline: '金融の複雑さから、人々を解放する。', subheadline: '金融業務の未来を担う、対話型AIエージェント。', description: 'Liberaは、金融に関する会話を自然に、かつ大規模に処理する、リアルタイムAI音声エージェントを開発しています。', primary: 'お問い合わせ', secondary: 'テクノロジーを見る' },
+    metrics: { title: '現代金融の複雑性のために設計。', items: [
+      { value: '¥40兆', numeric: 40, suffix: '兆', prefix: '¥', label: '日本の債権回収市場規模', sub: '対象市場' },
+      { value: 'リアルタイム', label: '対話型AI処理', sub: 'サブ秒次の推論' },
+      { value: 'Japan-first', label: '日本の金融業務に最適化', sub: 'ネイティブ設計' },
+    ]},
+    problem: { title: '金融の会話は、いまだ過去の仕組みの中にいる。', body: '金融業務は、レガシーシステム、手作業のワークフロー、紙の通信、コールセンターに依存し続けています。Liberaは、これらの業務を刷新するためのテクノロジープラットフォームです。摩擦を、流暢でリアルタイムな対話へと置き換えます。', traditional: '従来の仕組み', libera: 'Libera', traditionalFlow: ['紙の書類', '手作業のワークフロー', 'コールセンター', '分断されたシステム', '遅いフォローアップ'], liberaFlow: ['AIによる対話', 'リアルタイム理解', 'ネゴシエーション', '自動化されたワークフロー', '継続的なフォローアップ'] },
+    product: { label: 'プロダクト', title: '本当に"会話"ができるAIエージェント。', body: 'Liberaのエージェントは、最初の接触から解決まで、金融に関する会話を一貫して管理するように設計されています。', cards: [
+      { num: '01', title: '自律的なアウトリーチ', desc: 'AIエージェントがアウトバウンドコールを行い、流暢な日本語でインバウンドの会話に対応します。' },
+      { num: '02', title: 'リアルタイム対話', desc: 'システムは聴き、文脈を理解し、自然に応答し、会話をリアルタイムで適応させます。' },
+      { num: '03', title: 'ルールに則ったネゴシエーション', desc: 'エージェントは、事前に定義されたポリシーと承認済みの条件内で動作します。' },
+      { num: '04', title: 'オムニチャネル・フォローアップ', desc: '会話後に、SMS・書面・社内記録を自動ワークフローで連携します。' },
+    ]},
+    demo: { label: 'デモ', title: '会話が生まれる瞬間を、その目で。', badge: 'リアルタイム対話', states: ['聴取', '理解', '推論', '応答'], customerLabel: 'お客様', agentLabel: 'Libera AI', customerJa: '「今月は全額のお支払いが難しいです。」', customerTranslation: '', agentJa: '「承知しました。現在の状況に合わせて、お支払い方法についてご案内いたします。」', agentTranslation: '' },
+    tech: { label: 'テクノロジー', title: '遅延が許されない会話のために。', pipeline: ['音声', '音声認識', '対話エンジン', 'LLM', 'ポリシー / コンプライアンス', '音声合成', '電話網'], ecosystem: [
+      { name: 'Pipecat', role: 'リアルタイム音声パイプライン' }, { name: 'Pipecat Flows', role: '構造化された対話フロー' }, { name: 'Soniox', role: '日本語音声認識' }, { name: 'Cartesia', role: '低遅延音声合成' }, { name: 'OpenAI Models', role: '対話の推論' }, { name: 'Twilio', role: '電話インフラ' }, { name: 'Cloudflare Workers', role: 'エッジコンピューティング' }, { name: 'WebRTC / SIP', role: 'メディア転送' },
+    ], tagline: '低遅延。リアルタイム推論。安定した実行。' },
+    compliance: { label: 'コンプライアンス', title: '金融の会話におけるAIには、知能だけでは不十分です。', statement: '必要なのは、制御です。', body: '金融の会話には、慎重に設計されたポリシー、権限、エスカレーション経路、ログ、そしてコンプライアンス管理が必要です。Liberaは、運用者に必要なガードレールを提供するために設計されています。', cards: [
+      { title: 'ポリシー制御', desc: 'エージェントは、ビジネスにより定義された境界内で動作します。' }, { title: '承認済みネゴシエーション', desc: '会話は、事前に定義されたビジネスルールと承認済み条件の範囲内に留まります。' }, { title: '監査可能性', desc: '会話とアクションの記録を、エンドツーエンドで同期・保持します。' }, { title: '人間へのエスカレーション', desc: '必要に応じて、人間オペレータへの制御された移管を行います。' }, { title: 'データセキュリティ', desc: '機微な金融データのための、エンタープライズ向けセキュリティ設計。' },
+    ], note: 'ルールを踏まえた金融ワークフローのために設計。' },
+    workflow: { label: 'ワークフロー', title: 'ひとつの会話が、すべての後処理をつなぐ。', body: '最初の一言から最終的な監査記録まで、ワークフローの各段階を同期し続けることができます。', steps: ['電話', '対話の結果', '支払い / 計画', 'SMS', '書面', 'サービサーシステム', '監査ログ'] },
+    japan: { label: '日本', headlinePrimary: '日本の金融業務を、AIで再設計する。', headlineAccent: 'Reimagining financial operations in Japan with AI.', points: ['流暢な日本語での対話', '日本の金融業務に最適化', 'ルールを踏まえたプロセス設計', '国内の電話インフラ', 'エンタープライズ金融業務'] },
+    company: { label: '会社概要', title: '金融業務のための、新しいインフラ層。', body: 'Liberaは東京で設立され、人々を金融の複雑さから解放し、AIによる金融ワークフローの基盤を構築することをミッションとしています。', facts: [
+      { label: '設立', value: '2026年7月14日' }, { label: '本社', value: '東京都渋谷区' }, { label: 'ステージ', value: 'シード / アーリーステージ' }, { label: 'ミッション', value: '金融の複雑さから、人々を解放する' },
+    ]},
+    investors: { label: 'パートナー', title: '野心的なパートナーとともに。', investorsLabel: '投資家', validationLabel: '実績', investors: ['ANRI', 'Coreline'], validation: ['都内のライセンス保有サービサーとの本番パイロット', '国内主要金融機関とのトライアル'] },
+    careers: { label: '採用情報', title: '金融AIの未来を、ともに創る。', body: '私たちは、世界で最も複雑な業務環境のひとつのために、リアルタイム対話システムを構築しています。', featuredLabel: '注目職種', recruitmentLabel: '採用', role: { title: 'Founding Voice AI Engineer', keywords: ['Pipecat', 'Voice AI', 'LLMs', 'Japanese', 'WebRTC', 'SIP', 'Twilio', 'Real-time systems'], cta: '募集職種を見る' }, recruit: { title: '私たちと一緒に作りませんか？', cta: '募集職種を見る' } },
+    cta: { title: '金融会話の未来を、ともに創りましょう。', body: '次世代の金融インフラを構築されている方は、ぜひお気軽にお問い合わせください。', primary: 'Liberaに問い合わせる', secondary: 'チームに参加する' },
+    footer: { tagline: '金融の複雑さから、人々を解放する。', navLabel: 'メニュー', legalLabel: '法的情報', privacy: 'プライバシー', terms: '利用規約', copyright: '© 2026 Libera, Inc.', location: '東京、日本' },
+  },
+};
+
+/* ============================================================
+   Language Context
+   ============================================================ */
+const LanguageContext = createContext();
+const useLanguage = () => useContext(LanguageContext);
+
+const LanguageProvider = ({ children }) => {
+  const [lang, setLangState] = useState(() => {
+    if (typeof window !== 'undefined') return localStorage.getItem('libera_lang') || 'en';
+    return 'en';
+  });
+  const setLang = useCallback((l) => {
+    setLangState(l);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('libera_lang', l);
+      document.documentElement.lang = l;
+    }
+  }, []);
+  const t = useMemo(() => locales[lang], [lang]);
+  useEffect(() => { document.documentElement.lang = lang; }, [lang]);
+  return <LanguageContext.Provider value={{ lang, setLang, t }}>{children}</LanguageContext.Provider>;
+};
+
+const useReducedMotion = () => {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setReduced(mq.matches);
+    const handler = (e) => setReduced(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+  return reduced;
+};
+
+/* ============================================================
+   Global styles — TRUE mirror reflection (reversed text like in a real mirror)
+   ============================================================ */
+const GlobalStyles = () => {
+  useEffect(() => {
+    const id = 'libera-global-styles';
+    if (document.getElementById(id)) return;
+    const style = document.createElement('style');
+    style.id = id;
+    style.textContent = `
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap');
+      :root {
+        --bg: #08080a; --bg-elev: #0f0f12; --bg-elev-2: #15151a; --bg-elev-3: #1a1a20;
+        --border: rgba(255,255,255,0.06); --border-strong: rgba(255,255,255,0.12); --border-subtle: rgba(255,255,255,0.04);
+        --text: #fafafa; --text-dim: #a8a8b3; --text-muted: #6b6b76;
+        --accent: #6b8cff; --accent-bright: #8ba7ff; --accent-soft: rgba(107,140,255,0.12); --accent-glow: rgba(107,140,255,0.4);
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; }
+      html { scroll-behavior: smooth; }
+      body {
+        background: var(--bg); color: var(--text);
+        font-family: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+        -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+        font-feature-settings: 'cv11', 'ss01', 'ss03';
+        overflow-x: hidden; letter-spacing: -0.01em;
+      }
+      html[lang="ja"] body { font-family: 'Noto Sans JP', 'Inter', -apple-system, sans-serif; letter-spacing: 0.01em; }
+      ::selection { background: var(--accent-soft); color: var(--text); }
+      :focus-visible { outline: 1px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+
+      .noise-overlay { position: fixed; inset: 0; pointer-events: none; z-index: 1; opacity: 0.025; mix-blend-mode: overlay;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+      .dot-grid { background-image: radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px); background-size: 32px 32px; }
+      .jp-pattern { background-image: radial-gradient(circle at 1px 1px, rgba(107,140,255,0.06) 1px, transparent 0); background-size: 28px 28px; }
+      .glass { background: rgba(8, 8, 10, 0.72); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); }
+      .gradient-text { background: linear-gradient(180deg, #ffffff 0%, #a8a8b3 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+      .gradient-text-accent { background: linear-gradient(135deg, #ffffff 0%, #8ba7ff 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+      .gradient-text-premium { background: linear-gradient(180deg, #ffffff 0%, #ffffff 40%, #6b8cff 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+      .glow-accent { box-shadow: 0 0 60px var(--accent-glow), 0 0 120px rgba(107,140,255,0.15); }
+
+      .premium-card { position: relative; background: linear-gradient(180deg, rgba(21,21,26,0.8) 0%, rgba(15,15,18,0.8) 100%); border: 1px solid var(--border); transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); }
+      .premium-card::before { content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 40%);
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
+        pointer-events: none; opacity: 0.6; transition: opacity 0.5s; }
+      .premium-card:hover { border-color: var(--border-strong); transform: translateY(-2px); background: linear-gradient(180deg, rgba(26,26,32,0.9) 0%, rgba(15,15,18,0.9) 100%); }
+      .premium-card:hover::before { opacity: 1; }
+
+      .animated-border { position: relative; overflow: hidden; }
+      .animated-border::before {
+        content: ''; position: absolute; inset: -1px; z-index: -1;
+        background: conic-gradient(from var(--angle, 0deg), transparent 0%, var(--accent) 20%, transparent 40%);
+        animation: rotate-border 6s linear infinite; opacity: 0; transition: opacity 0.5s;
+      }
+      .animated-border:hover::before { opacity: 0.6; }
+      @property --angle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+      @keyframes rotate-border { to { --angle: 360deg; } }
+
+      .shine-hover { position: relative; overflow: hidden; }
+      .shine-hover::after { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent); transition: left 0.8s cubic-bezier(0.22, 1, 0.36, 1); pointer-events: none; }
+      .shine-hover:hover::after { left: 100%; }
+
+      .btn-primary { background: #fafafa; color: #08080a; transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1); position: relative; overflow: hidden;
+        box-shadow: 0 1px 0 rgba(255,255,255,0.2) inset, 0 8px 24px rgba(0,0,0,0.3); }
+      .btn-primary:hover { background: #ffffff; transform: translateY(-1px); box-shadow: 0 1px 0 rgba(255,255,255,0.2) inset, 0 12px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.1); }
+      .btn-secondary { background: rgba(255,255,255,0.02); color: var(--text); border: 1px solid var(--border-strong); transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1); backdrop-filter: blur(8px); }
+      .btn-secondary:hover { border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.04); transform: translateY(-1px); }
+
+      .scrollbar-hide::-webkit-scrollbar { display: none; }
+      .scrollbar-hide { scrollbar-width: none; }
+
+      @keyframes pulse-slow { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+      .animate-pulse-slow { animation: pulse-slow 3s ease-in-out infinite; }
+      @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
+      .animate-float { animation: float 8s ease-in-out infinite; }
+      @keyframes waveform { 0%, 100% { transform: scaleY(0.3); } 50% { transform: scaleY(1); } }
+      @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+      @keyframes orb-float { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(30px, -40px) scale(1.05); } 66% { transform: translate(-20px, 20px) scale(0.95); } }
+      .animate-orb { animation: orb-float 20s ease-in-out infinite; }
+      @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+      .animate-marquee { animation: marquee 40s linear infinite; }
+      @keyframes dash { to { stroke-dashoffset: -100; } }
+      .animate-dash { stroke-dasharray: 4 8; animation: dash 3s linear infinite; }
+      @keyframes gradient-shift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+      .animate-gradient { background-size: 200% 200%; animation: gradient-shift 8s ease infinite; }
+
+      .section-divider { height: 1px; background: linear-gradient(90deg, transparent, var(--border-strong), transparent); }
+      .premium-label { font-size: 11px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--text-muted); font-weight: 500; }
+      .premium-number { font-feature-settings: 'tnum' 1, 'cv11' 1; letter-spacing: -0.03em; }
+
+      .cursor-glow { position: absolute; width: 500px; height: 500px; border-radius: 50%; pointer-events: none;
+        background: radial-gradient(circle, rgba(107,140,255,0.08), transparent 60%);
+        transform: translate(-50%, -50%); transition: opacity 0.3s; z-index: 0; }
+
+      /* ====== INTRO ANIMATION — TRUE MIRROR REFLECTION ======
+         The mirror shows text reversed horizontally, exactly like
+         looking at text in a real mirror. The word reads backwards. */
+      .intro-letter-main {
+        font-family: 'Inter', sans-serif;
+        font-weight: 900;
+        letter-spacing: 0.06em;
+        line-height: 1;
+        display: inline-block;
+        background: linear-gradient(
+          180deg,
+          #ffffff 0%,
+          #ffffff 50%,
+          #d8e0ff 80%,
+          #8ba7ff 100%
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        position: relative;
+      }
+
+      /* TRUE mirror reflection — each letter flipped horizontally
+         and the entire word reads in reverse order, exactly like
+         looking at text in a real mirror. */
+      .intro-letter-mirror {
+        font-family: 'Inter', sans-serif;
+        font-weight: 900;
+        letter-spacing: 0.06em;
+        line-height: 1;
+        display: inline-block;
+        /* Flip each letter horizontally */
+        transform: scaleX(-1);
+        background: linear-gradient(
+          180deg,
+          rgba(220, 230, 255, 0.92) 0%,
+          rgba(180, 200, 255, 0.72) 20%,
+          rgba(139, 167, 255, 0.5) 40%,
+          rgba(107, 140, 255, 0.25) 65%,
+          rgba(107, 140, 255, 0.08) 85%,
+          transparent 100%
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        -webkit-mask-image: linear-gradient(
+          to bottom,
+          rgba(0, 0, 0, 0.92) 0%,
+          rgba(0, 0, 0, 0.72) 20%,
+          rgba(0, 0, 0, 0.45) 45%,
+          rgba(0, 0, 0, 0.2) 70%,
+          rgba(0, 0, 0, 0.05) 90%,
+          transparent 100%
+        );
+        mask-image: linear-gradient(
+          to bottom,
+          rgba(0, 0, 0, 0.92) 0%,
+          rgba(0, 0, 0, 0.72) 20%,
+          rgba(0, 0, 0, 0.45) 45%,
+          rgba(0, 0, 0, 0.2) 70%,
+          rgba(0, 0, 0, 0.05) 90%,
+          transparent 100%
+        );
+        filter: blur(0.25px);
+        user-select: none;
+        pointer-events: none;
+      }
+
+      @keyframes intro-sweep {
+        0% { transform: translateX(-120%); }
+        100% { transform: translateX(220%); }
+      }
+    `;
+    document.head.appendChild(style);
+  }, []);
+  return null;
+};
+
+/* ============================================================
+   INTRO ANIMATION — Letter-by-letter LIBERA with TRUE mirror
+   The mirror shows the text reversed (like in a real mirror):
+   LIBERA → AREBIL
+   ============================================================ */
+const IntroAnimation = ({ onComplete }) => {
+  const reduced = useReducedMotion();
+  const letters = ['L', 'I', 'B', 'E', 'R', 'A'];
+  // Reversed order for mirror: A, R, E, B, I, L
+  const mirrorLetters = [...letters].reverse();
+
+  useEffect(() => {
+    if (reduced) {
+      const t = setTimeout(onComplete, 50);
+      return () => clearTimeout(t);
+    }
+    const t = setTimeout(onComplete, 6200);
+    return () => clearTimeout(t);
+  }, [onComplete, reduced]);
+
+  if (reduced) return null;
+
+  const sizeClass = 'text-[72px] sm:text-[110px] md:text-[150px] lg:text-[190px]';
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-[200] flex items-center justify-center overflow-hidden"
+      style={{ background: '#08080a' }}
+      initial={{ opacity: 1 }}
+      exit={{
+        opacity: 0,
+        transition: { duration: 1.2, ease: [0.22, 1, 0.36, 1] }
+      }}
+    >
+      <motion.div
+        className="absolute inset-0 pointer-events-none"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 2, delay: 0.5 }}
+      >
+        <div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px]"
+          style={{
+            background: 'radial-gradient(circle, rgba(107,140,255,0.045) 0%, transparent 55%)',
+            filter: 'blur(30px)',
+          }}
+        />
+      </motion.div>
+
+      <div className="relative flex flex-col items-center w-full px-4">
+        <div className="relative">
+          {/* Main LIBERA wordmark — upright, normal */}
+          <div className="relative overflow-hidden">
+            <div
+              className={`${sizeClass} select-none whitespace-nowrap flex items-baseline justify-center`}
+              aria-label="Libera"
+            >
+              {letters.map((letter, i) => (
+                <motion.span
+                  key={`main-${i}`}
+                  className="intro-letter-main"
+                  initial={{ x: '-100vw', opacity: 0, filter: 'blur(8px)' }}
+                  animate={{ x: 0, opacity: 1, filter: 'blur(0px)' }}
+                  transition={{
+                    x: { duration: 1.2, delay: 0.4 + i * 0.38, ease: [0.16, 1, 0.3, 1] },
+                    opacity: { duration: 0.8, delay: 0.4 + i * 0.38, ease: 'easeOut' },
+                    filter: { duration: 0.9, delay: 0.4 + i * 0.38, ease: 'easeOut' },
+                  }}
+                >
+                  {letter}
+                </motion.span>
+              ))}
+            </div>
+
+            {/* Light sweep */}
+            <motion.div
+              className="absolute inset-0 overflow-hidden pointer-events-none"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 4.0, duration: 0.01 }}
+            >
+              <div
+                className="absolute top-0 bottom-0 w-1/3"
+                style={{
+                  background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent)',
+                  filter: 'blur(14px)',
+                  animation: 'intro-sweep 1.8s cubic-bezier(0.22, 1, 0.36, 1) 4.0s 1 normal forwards',
+                }}
+              />
+            </motion.div>
+          </div>
+
+          {/* TRUE mirror reflection — text reversed like in a real mirror
+               Letters appear in reverse order (A-R-E-B-I-L) and each
+               letter is flipped horizontally */}
+          <div
+            className={`${sizeClass} select-none whitespace-nowrap flex items-baseline justify-center overflow-hidden`}
+            aria-hidden="true"
+            style={{ marginTop: '-2px' }}
+          >
+            {mirrorLetters.map((letter, i) => (
+              <motion.span
+                key={`mirror-${i}`}
+                className="intro-letter-mirror"
+                initial={{ y: -30, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{
+                  y: { duration: 1.0, delay: 0.4 + i * 0.38, ease: [0.22, 1, 0.36, 1] },
+                  opacity: { duration: 0.9, delay: 0.4 + i * 0.38, ease: 'easeOut' },
+                }}
+              >
+                {letter}
+              </motion.span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+/* ============================================================
+   Scroll Progress Bar
+   ============================================================ */
+const ScrollProgress = () => {
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
+  return (
+    <motion.div
+      className="fixed top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[var(--accent)] via-[var(--accent-bright)] to-[var(--accent)] origin-left z-[100]"
+      style={{ scaleX, boxShadow: '0 0 10px var(--accent-glow)' }}
+    />
+  );
+};
+
+const useMousePosition = () => {
+  const [pos, setPos] = useState({ x: 0, y: 0 });
+  useEffect(() => {
+    const handler = (e) => setPos({ x: e.clientX, y: e.clientY });
+    window.addEventListener('mousemove', handler);
+    return () => window.removeEventListener('mousemove', handler);
+  }, []);
+  return pos;
+};
+
+const AnimatedCounter = ({ value, prefix = '', suffix = '', duration = 2 }) => {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: '-50px' });
+  const [display, setDisplay] = useState(0);
+  useEffect(() => {
+    if (!inView) return;
+    const controls = animate(0, value, {
+      duration,
+      ease: [0.22, 1, 0.36, 1],
+      onUpdate: (v) => setDisplay(Math.round(v)),
+    });
+    return () => controls.stop();
+  }, [inView, value, duration]);
+  return <span ref={ref}>{prefix}{display}{suffix}</span>;
+};
+
+const WordReveal = ({ text, className = '', delay = 0 }) => {
+  const words = text.split(' ');
+  const reduced = useReducedMotion();
+  return (
+    <span className={className}>
+      {words.map((word, i) => (
+        <motion.span
+          key={i}
+          initial={reduced ? {} : { opacity: 0, y: '0.5em', filter: 'blur(8px)' }}
+          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          transition={{ duration: 0.8, delay: delay + i * 0.08, ease: [0.22, 1, 0.36, 1] }}
+          className="inline-block mr-[0.25em]"
+        >
+          {word}
+        </motion.span>
+      ))}
+    </span>
+  );
+};
+
+const MagneticButton = ({ children, className = '', strength = 0.3, ...props }) => {
+  const ref = useRef(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const springX = useSpring(x, { stiffness: 150, damping: 15 });
+  const springY = useSpring(y, { stiffness: 150, damping: 15 });
+  const reduced = useReducedMotion();
+
+  const handleMouse = (e) => {
+    if (reduced) return;
+    const rect = ref.current.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    x.set((e.clientX - cx) * strength);
+    y.set((e.clientY - cy) * strength);
+  };
+  const reset = () => { x.set(0); y.set(0); };
+
+  return (
+    <motion.a
+      ref={ref}
+      onMouseMove={handleMouse}
+      onMouseLeave={reset}
+      style={{ x: springX, y: springY }}
+      className={className}
+      {...props}
+    >
+      {children}
+    </motion.a>
+  );
+};
+
+const Section = ({ children, className = '', id }) => (
+  <section id={id} className={`relative px-6 md:px-10 lg:px-16 ${className}`}>
+    <div className="mx-auto max-w-[1400px]">{children}</div>
+  </section>
+);
+
+const Reveal = ({ children, delay = 0, className = '', y = 24 }) => {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: '-60px' });
+  const reduced = useReducedMotion();
+  return (
+    <motion.div
+      ref={ref}
+      initial={reduced ? {} : { opacity: 0, y }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 1, delay, ease: [0.22, 1, 0.36, 1] }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+};
+
+const SectionLabel = ({ children, number }) => (
+  <div className="flex items-center gap-3 mb-6">
+    {number !== undefined && (
+      <span className="text-[11px] font-mono text-[var(--accent)] tracking-widest">{number}</span>
+    )}
+    <span className="premium-label">{children}</span>
+    <div className="h-px flex-1 bg-gradient-to-r from-[var(--border-strong)] to-transparent max-w-[60px]" />
+  </div>
+);
+
+const AmbientBackground = () => {
+  const reduced = useReducedMotion();
+  if (reduced) return null;
+  return (
+    <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
+      <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full animate-orb"
+        style={{ background: 'radial-gradient(circle, rgba(107,140,255,0.08), transparent 60%)', filter: 'blur(60px)' }} />
+      <div className="absolute top-[40%] right-[-10%] w-[500px] h-[500px] rounded-full animate-orb"
+        style={{ background: 'radial-gradient(circle, rgba(139,167,255,0.06), transparent 60%)', filter: 'blur(60px)', animationDelay: '-7s' }} />
+      <div className="absolute bottom-[-10%] left-[30%] w-[500px] h-[500px] rounded-full animate-orb"
+        style={{ background: 'radial-gradient(circle, rgba(107,140,255,0.05), transparent 60%)', filter: 'blur(60px)', animationDelay: '-14s' }} />
+    </div>
+  );
+};
+
+const ParticleField = () => {
+  const canvasRef = useRef(null);
+  const reduced = useReducedMotion();
+  useEffect(() => {
+    if (reduced) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const resize = () => {
+      canvas.width = canvas.offsetWidth * window.devicePixelRatio;
+      canvas.height = canvas.offsetHeight * window.devicePixelRatio;
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    const particles = Array.from({ length: 60 }, () => ({
+      x: Math.random() * canvas.offsetWidth,
+      y: Math.random() * canvas.offsetHeight,
+      vx: (Math.random() - 0.5) * 0.3,
+      vy: (Math.random() - 0.5) * 0.3,
+      r: Math.random() * 1.5 + 0.5,
+      o: Math.random() * 0.5 + 0.2,
+    }));
+
+    let raf;
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
+      particles.forEach((p) => {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0 || p.x > canvas.offsetWidth) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.offsetHeight) p.vy *= -1;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(139, 167, 255, ${p.o})`;
+        ctx.fill();
+      });
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 120) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.strokeStyle = `rgba(107, 140, 255, ${0.15 * (1 - dist / 120)})`;
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+        }
+      }
+      raf = requestAnimationFrame(draw);
+    };
+    draw();
+    return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize); };
+  }, [reduced]);
+  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />;
+};
+
+const Navbar = () => {
+  const { lang, setLang, t } = useLanguage();
+  const [scrolled, setScrolled] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+  useEffect(() => { document.body.style.overflow = mobileOpen ? 'hidden' : ''; return () => { document.body.style.overflow = ''; }; }, [mobileOpen]);
+  const links = [
+    { key: 'product', href: '#product' }, { key: 'technology', href: '#technology' },
+    { key: 'compliance', href: '#compliance' }, { key: 'company', href: '#company' }, { key: 'careers', href: '#careers' },
+  ];
+  return (
+    <>
+      <motion.header
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? 'glass' : 'bg-transparent'}`}
+        style={{ borderBottom: scrolled ? '1px solid var(--border)' : '1px solid transparent' }}
+      >
+        <div className="mx-auto max-w-[1400px] px-6 md:px-10 lg:px-16">
+          <div className="flex h-16 md:h-20 items-center justify-between">
+            <a href="#top" className="flex items-center gap-2.5 group" aria-label="Libera home">
+              <div className="relative w-8 h-8">
+                <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-white via-zinc-200 to-zinc-500 opacity-90" />
+                <div className="absolute inset-[1.5px] rounded-[6px] bg-[var(--bg)] flex items-center justify-center">
+                  <span className="text-[11px] font-bold tracking-tight text-white">L</span>
+                </div>
+              </div>
+              <span className="text-[14px] font-semibold tracking-[0.25em] text-white">LIBERA</span>
+            </a>
+            <nav className="hidden lg:flex items-center gap-1" aria-label="Primary">
+              {links.map((l) => (
+                <a key={l.key} href={l.href} className="px-4 py-2 text-[13px] text-zinc-400 hover:text-white transition-colors duration-300 rounded-md hover:bg-white/[0.03]">
+                  {t.nav[l.key]}
+                </a>
+              ))}
+            </nav>
+            <div className="flex items-center gap-3">
+              <button onClick={() => setLang(lang === 'en' ? 'ja' : 'en')}
+                className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 text-[12px] text-zinc-400 hover:text-white border border-[var(--border)] hover:border-[var(--border-strong)] rounded-full transition-all duration-300 hover:bg-white/[0.02]"
+                aria-label="Switch language">
+                <span className={lang === 'en' ? 'text-white font-medium' : ''}>EN</span>
+                <span className="text-zinc-700">/</span>
+                <span className={lang === 'ja' ? 'text-white font-medium' : ''}>日本語</span>
+              </button>
+              <MagneticButton href="#contact" className="hidden md:inline-flex btn-primary px-5 py-2 text-[13px] font-medium rounded-full">
+                {t.nav.cta}
+              </MagneticButton>
+              <button onClick={() => setMobileOpen(true)} className="lg:hidden p-2 text-white" aria-label="Open menu">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 7h18M3 12h18M3 17h18" strokeLinecap="round" /></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </motion.header>
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[60] lg:hidden">
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={() => setMobileOpen(false)} />
+            <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 32, stiffness: 300 }}
+              className="absolute right-0 top-0 bottom-0 w-[85%] max-w-sm bg-[var(--bg-elev)] border-l border-[var(--border)]">
+              <div className="flex items-center justify-between p-6 border-b border-[var(--border)]">
+                <span className="text-[13px] font-semibold tracking-[0.25em]">LIBERA</span>
+                <button onClick={() => setMobileOpen(false)} aria-label="Close menu" className="p-2 text-white">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" /></svg>
+                </button>
+              </div>
+              <nav className="p-6 flex flex-col gap-1">
+                {links.map((l, i) => (
+                  <motion.a key={l.key} href={l.href} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 + i * 0.05 }}
+                    onClick={() => setMobileOpen(false)} className="py-3.5 text-[17px] text-zinc-300 hover:text-white border-b border-[var(--border)] transition-colors">
+                    {t.nav[l.key]}
+                  </motion.a>
+                ))}
+              </nav>
+              <div className="p-6 flex flex-col gap-3">
+                <button onClick={() => setLang(lang === 'en' ? 'ja' : 'en')} className="flex items-center justify-center gap-2 px-4 py-3 text-[13px] border border-[var(--border)] rounded-full">
+                  <span className={lang === 'en' ? 'text-white font-medium' : 'text-zinc-500'}>EN</span>
+                  <span className="text-zinc-600">/</span>
+                  <span className={lang === 'ja' ? 'text-white font-medium' : 'text-zinc-500'}>日本語</span>
+                </button>
+                <a href="#contact" onClick={() => setMobileOpen(false)} className="btn-primary px-4 py-3 text-[13px] font-medium rounded-full text-center">{t.nav.cta}</a>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+};
+
+const HeroVisualization = () => {
+  const reduced = useReducedMotion();
+  const { scrollY } = useScroll();
+  const rotate = useTransform(scrollY, [0, 500], [0, 90]);
+  const scale = useTransform(scrollY, [0, 500], [1, 0.9]);
+
+  return (
+    <motion.div className="relative w-full aspect-square max-w-[600px] mx-auto" style={{ scale }}>
+      <div className="absolute inset-0 rounded-full animate-gradient"
+        style={{ background: 'radial-gradient(circle at center, rgba(107,140,255,0.15) 0%, transparent 60%)', filter: 'blur(40px)' }} />
+      <motion.svg viewBox="0 0 600 600" className="absolute inset-0 w-full h-full" style={{ rotate }}>
+        <defs>
+          <radialGradient id="coreGlow2" cx="50%" cy="50%">
+            <stop offset="0%" stopColor="#8ba7ff" stopOpacity="0.5" />
+            <stop offset="40%" stopColor="#6b8cff" stopOpacity="0.15" />
+            <stop offset="100%" stopColor="#6b8cff" stopOpacity="0" />
+          </radialGradient>
+          <linearGradient id="ringGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#8ba7ff" stopOpacity="0.8" />
+            <stop offset="50%" stopColor="#6b8cff" stopOpacity="0.3" />
+            <stop offset="100%" stopColor="#6b8cff" stopOpacity="0" />
+          </linearGradient>
+          <linearGradient id="flowGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#6b8cff" stopOpacity="0" />
+            <stop offset="50%" stopColor="#8ba7ff" stopOpacity="0.8" />
+            <stop offset="100%" stopColor="#6b8cff" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <circle cx="300" cy="300" r="240" fill="url(#coreGlow2)" />
+        {[260, 220, 180, 140, 100].map((r, i) => (
+          <circle key={r} cx="300" cy="300" r={r} fill="none" stroke="url(#ringGrad2)" strokeWidth={i === 0 ? '0.8' : '0.5'} opacity={0.5 - i * 0.08}
+            style={reduced ? {} : { transformOrigin: '300px 300px', animation: `rotate ${40 + i * 12}s linear infinite ${i % 2 ? 'reverse' : ''}` }} />
+        ))}
+        {Array.from({ length: 32 }).map((_, i) => {
+          const angle = (i / 32) * Math.PI * 2;
+          const radius = 180 + (i % 4) * 25;
+          const x = 300 + Math.cos(angle) * radius;
+          const y = 300 + Math.sin(angle) * radius;
+          return (
+            <circle key={i} cx={x} cy={y} r={i % 5 === 0 ? '2' : '1.2'} fill="#8ba7ff" opacity={0.3 + (i % 5) * 0.15}
+              style={reduced ? {} : { animation: `pulse-slow ${3 + (i % 4)}s ease-in-out infinite`, animationDelay: `${i * 0.08}s` }} />
+          );
+        })}
+        <g opacity="0.5">
+          <path d="M 80 300 Q 200 240 300 300" fill="none" stroke="url(#flowGrad)" strokeWidth="1" className={reduced ? '' : 'animate-dash'} />
+          <path d="M 300 300 Q 400 360 520 300" fill="none" stroke="url(#flowGrad)" strokeWidth="1" className={reduced ? '' : 'animate-dash'} />
+          <path d="M 300 80 Q 240 200 300 300" fill="none" stroke="url(#flowGrad)" strokeWidth="0.8" opacity="0.6" className={reduced ? '' : 'animate-dash'} />
+          <path d="M 300 300 Q 360 400 300 520" fill="none" stroke="url(#flowGrad)" strokeWidth="0.8" opacity="0.6" className={reduced ? '' : 'animate-dash'} />
+        </g>
+        <circle cx="300" cy="300" r="42" fill="#08080a" stroke="#6b8cff" strokeWidth="1" opacity="0.95" />
+        <circle cx="300" cy="300" r="28" fill="none" stroke="#6b8cff" strokeWidth="0.5" opacity="0.4" />
+        <motion.circle cx="300" cy="300" r="6" fill="#8ba7ff" opacity="0.9"
+          animate={reduced ? {} : { r: [6, 9, 6], opacity: [0.9, 0.5, 0.9] }}
+          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }} />
+        <circle cx="300" cy="300" r="3" fill="#ffffff" />
+      </motion.svg>
+      {!reduced && (
+        <>
+          {[
+            { pos: 'top-[15%] left-[5%]', delay: '0s', size: 'w-2 h-2' },
+            { pos: 'top-[20%] right-[8%]', delay: '1.2s', size: 'w-1.5 h-1.5' },
+            { pos: 'bottom-[20%] left-[10%]', delay: '2.4s', size: 'w-1.5 h-1.5' },
+            { pos: 'bottom-[15%] right-[5%]', delay: '3.6s', size: 'w-2 h-2' },
+            { pos: 'top-[50%] left-[-2%]', delay: '4.8s', size: 'w-1 h-1' },
+            { pos: 'top-[50%] right-[-2%]', delay: '6s', size: 'w-1 h-1' },
+          ].map((n, i) => (
+            <div key={i} className={`absolute ${n.pos} ${n.size} rounded-full bg-[var(--accent-bright)] animate-float`}
+              style={{ animationDelay: n.delay, boxShadow: '0 0 24px var(--accent-glow)' }} />
+          ))}
+        </>
+      )}
+    </motion.div>
+  );
+};
+
+const Hero = () => {
+  const { t } = useLanguage();
+  const reduced = useReducedMotion();
+  const mouse = useMousePosition();
+  const heroRef = useRef(null);
+  const [mouseLocal, setMouseLocal] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    if (!heroRef.current || reduced) return;
+    const rect = heroRef.current.getBoundingClientRect();
+    setMouseLocal({ x: mouse.x - rect.left, y: mouse.y - rect.top });
+  }, [mouse, reduced]);
+
+  return (
+    <section id="top" ref={heroRef} className="relative min-h-screen pt-28 pb-20 md:pt-36 md:pb-28 overflow-hidden">
+      <div className="absolute inset-0 dot-grid opacity-40" />
+      <div className="absolute inset-0 jp-pattern opacity-30" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1200px] h-[800px] bg-[radial-gradient(ellipse_at_center,rgba(107,140,255,0.1),transparent_60%)] pointer-events-none" />
+      {!reduced && (
+        <div className="cursor-glow hidden md:block" style={{ left: mouseLocal.x, top: mouseLocal.y, opacity: 0.6 }} />
+      )}
+
+      <div className="relative mx-auto max-w-[1400px] px-6 md:px-10 lg:px-16">
+        <div className="grid lg:grid-cols-2 gap-16 lg:gap-20 items-center min-h-[calc(100vh-10rem)]">
+          <div className="flex flex-col justify-center relative z-10">
+            <motion.div initial={reduced ? {} : { opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}
+              className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full border border-[var(--border-strong)] bg-white/[0.02] mb-10 w-fit backdrop-blur-sm">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent)] opacity-75" />
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[var(--accent-bright)]" />
+              </span>
+              <span className="text-[11px] tracking-[0.2em] text-zinc-400 font-medium uppercase">{t.hero.status}</span>
+            </motion.div>
+
+            <h1 className="text-[44px] sm:text-[56px] lg:text-[72px] leading-[1.02] tracking-[-0.03em] font-semibold gradient-text-premium mb-8">
+              <WordReveal text={t.hero.headline} delay={0.2} />
+            </h1>
+
+            <motion.p initial={reduced ? {} : { opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.8 }}
+              className="text-[19px] md:text-[22px] text-zinc-300 font-light mb-5 leading-snug tracking-tight max-w-xl">
+              {t.hero.subheadline}
+            </motion.p>
+            <motion.p initial={reduced ? {} : { opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.9 }}
+              className="text-[15px] text-zinc-500 max-w-xl mb-12 leading-relaxed">
+              {t.hero.description}
+            </motion.p>
+
+            <motion.div initial={reduced ? {} : { opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 1 }}
+              className="flex flex-col sm:flex-row gap-3">
+              <MagneticButton href="#contact" className="btn-primary px-7 py-3.5 text-[14px] font-medium rounded-full text-center" strength={0.2}>
+                {t.hero.primary}
+              </MagneticButton>
+              <MagneticButton href="#technology" className="btn-secondary px-7 py-3.5 text-[14px] font-medium rounded-full text-center inline-flex items-center justify-center gap-2" strength={0.2}>
+                {t.hero.secondary}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M5 12h14M13 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" /></svg>
+              </MagneticButton>
+            </motion.div>
+          </div>
+
+          <motion.div initial={reduced ? {} : { opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1.4, delay: 0.3, ease: [0.22, 1, 0.36, 1] }} className="relative">
+            <HeroVisualization />
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const Metrics = () => {
+  const { t } = useLanguage();
+  return (
+    <Section className="py-20 md:py-28">
+      <Reveal>
+        <div className="text-center mb-16">
+          <p className="premium-label mb-4">{t.metrics.title}</p>
+        </div>
+      </Reveal>
+      <div className="grid md:grid-cols-3 gap-px bg-[var(--border)] rounded-2xl overflow-hidden border border-[var(--border)]">
+        {t.metrics.items.map((item, i) => (
+          <Reveal key={i} delay={i * 0.1}>
+            <div className="bg-[var(--bg)] p-10 md:p-12 relative group overflow-hidden">
+              <div className="absolute top-0 right-0 w-40 h-40 bg-[radial-gradient(circle,rgba(107,140,255,0.06),transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+              <div className="relative">
+                <div className="text-[40px] md:text-[52px] font-semibold gradient-text-accent tracking-[-0.03em] mb-4 premium-number">
+                  {item.numeric ? (
+                    <AnimatedCounter value={item.numeric} prefix={item.prefix || ''} suffix={item.suffix || ''} />
+                  ) : item.value}
+                </div>
+                <div className="text-[13px] text-zinc-300 font-medium mb-1.5">{item.label}</div>
+                <div className="text-[11px] text-zinc-600 tracking-wide uppercase">{item.sub}</div>
+              </div>
+            </div>
+          </Reveal>
+        ))}
+      </div>
+    </Section>
+  );
+};
+
+const Problem = () => {
+  const { t } = useLanguage();
+  const reduced = useReducedMotion();
+  return (
+    <Section className="py-28 md:py-40">
+      <div className="max-w-3xl mb-20">
+        <Reveal><SectionLabel number="01">Problem</SectionLabel></Reveal>
+        <Reveal delay={0.05}>
+          <h2 className="text-[36px] md:text-[52px] leading-[1.05] tracking-[-0.03em] font-semibold gradient-text mb-8">{t.problem.title}</h2>
+        </Reveal>
+        <Reveal delay={0.1}><p className="text-[17px] md:text-[18px] text-zinc-400 leading-relaxed">{t.problem.body}</p></Reveal>
+      </div>
+      <div className="grid md:grid-cols-2 gap-5 md:gap-6">
+        <Reveal delay={0.1}>
+          <div className="premium-card rounded-2xl p-8 md:p-10 h-full">
+            <div className="flex items-center gap-2.5 mb-8">
+              <div className="w-2 h-2 rounded-full bg-zinc-600" />
+              <span className="premium-label">{t.problem.traditional}</span>
+            </div>
+            <div className="space-y-2.5">
+              {t.problem.traditionalFlow.map((step, i) => (
+                <motion.div key={i} initial={reduced ? {} : { opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
+                  transition={{ delay: 0.1 + i * 0.08, duration: 0.6 }} className="flex items-center gap-4 py-2">
+                  <div className="w-9 h-9 rounded-lg border border-[var(--border)] bg-[var(--bg)] flex items-center justify-center text-[11px] text-zinc-600 font-mono premium-number">
+                    {String(i + 1).padStart(2, '0')}
+                  </div>
+                  <div className="flex-1 text-[14px] text-zinc-400">{step}</div>
+                  {i < t.problem.traditionalFlow.length - 1 && (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-zinc-700"><path d="M12 5v14M5 12l7 7 7-7" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </Reveal>
+        <Reveal delay={0.2}>
+          <div className="premium-card rounded-2xl p-8 md:p-10 h-full relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-60 h-60 bg-[radial-gradient(circle,rgba(107,140,255,0.1),transparent_70%)]" />
+            <div className="relative">
+              <div className="flex items-center gap-2.5 mb-8">
+                <div className="w-2 h-2 rounded-full bg-[var(--accent-bright)] animate-pulse-slow" style={{ boxShadow: '0 0 12px var(--accent-glow)' }} />
+                <span className="text-[11px] tracking-[0.25em] text-[var(--accent-bright)] uppercase font-medium">{t.problem.libera}</span>
+              </div>
+              <div className="space-y-2.5">
+                {t.problem.liberaFlow.map((step, i) => (
+                  <motion.div key={i} initial={reduced ? {} : { opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
+                    transition={{ delay: 0.2 + i * 0.08, duration: 0.6 }} className="flex items-center gap-4 py-2">
+                    <div className="w-9 h-9 rounded-lg border border-[var(--accent-soft)] bg-[var(--accent-soft)] flex items-center justify-center text-[11px] text-[var(--accent-bright)] font-mono premium-number">
+                      {String(i + 1).padStart(2, '0')}
+                    </div>
+                    <div className="flex-1 text-[14px] text-zinc-200">{step}</div>
+                    {i < t.problem.liberaFlow.length - 1 && (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-[var(--accent)]"><path d="M12 5v14M5 12l7 7 7-7" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                    )}
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </Reveal>
+      </div>
+    </Section>
+  );
+};
+
+const Product = () => {
+  const { t } = useLanguage();
+  const icons = [
+    <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" strokeWidth="1.2"><circle cx="20" cy="20" r="14" /><path d="M14 20c0-3.3 2.7-6 6-6M20 14v6l4 2" strokeLinecap="round" /><circle cx="20" cy="20" r="2" fill="currentColor" /></svg>,
+    <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" strokeWidth="1.2"><path d="M8 14h16v10H14l-6 4v-4z" strokeLinejoin="round" /><path d="M24 18h8v10h-4l-4 3v-3" strokeLinejoin="round" /><circle cx="14" cy="19" r="0.8" fill="currentColor" /><circle cx="18" cy="19" r="0.8" fill="currentColor" /></svg>,
+    <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" strokeWidth="1.2"><path d="M20 6l12 5v9c0 7-5 12-12 14-7-2-12-7-12-14v-9l12-5z" strokeLinejoin="round" /><path d="M15 20l3 3 7-7" strokeLinecap="round" strokeLinejoin="round" /></svg>,
+    <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" strokeWidth="1.2"><circle cx="20" cy="20" r="4" /><circle cx="8" cy="10" r="3" /><circle cx="32" cy="10" r="3" /><circle cx="8" cy="30" r="3" /><circle cx="32" cy="30" r="3" /><path d="M10 12l7 6M30 12l-7 6M10 28l7-6M30 28l-7-6" strokeLinecap="round" /></svg>,
+  ];
+  return (
+    <Section id="product" className="py-28 md:py-40">
+      <div className="max-w-3xl mb-20">
+        <Reveal><SectionLabel number="02">{t.product.label}</SectionLabel></Reveal>
+        <Reveal delay={0.05}><h2 className="text-[36px] md:text-[52px] leading-[1.05] tracking-[-0.03em] font-semibold gradient-text mb-8">{t.product.title}</h2></Reveal>
+        <Reveal delay={0.1}><p className="text-[17px] md:text-[18px] text-zinc-400 leading-relaxed">{t.product.body}</p></Reveal>
+      </div>
+      <div className="grid md:grid-cols-2 gap-5">
+        {t.product.cards.map((card, i) => (
+          <Reveal key={i} delay={i * 0.08}>
+            <div className="premium-card animated-border shine-hover rounded-2xl p-9 md:p-10 h-full">
+              <div className="flex items-start justify-between mb-10">
+                <motion.div className="text-[var(--accent-bright)] w-11 h-11" whileHover={{ rotate: [0, -10, 10, 0], scale: 1.1 }} transition={{ duration: 0.5 }}>
+                  {icons[i]}
+                </motion.div>
+                <span className="text-[11px] font-mono text-zinc-600 tracking-wider premium-number">{card.num}</span>
+              </div>
+              <h3 className="text-[22px] font-semibold text-white mb-3 tracking-tight leading-tight">{card.title}</h3>
+              <p className="text-[14px] text-zinc-400 leading-relaxed">{card.desc}</p>
+            </div>
+          </Reveal>
+        ))}
+      </div>
+    </Section>
+  );
+};
+
+const TypingText = ({ text, delay = 0, speed = 30 }) => {
+  const [displayed, setDisplayed] = useState('');
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true });
+  const reduced = useReducedMotion();
+
+  useEffect(() => {
+    if (!inView) return;
+    if (reduced) { setDisplayed(text); return; }
+    setDisplayed('');
+    let i = 0;
+    const timeout = setTimeout(() => {
+      const interval = setInterval(() => {
+        if (i < text.length) {
+          setDisplayed(text.slice(0, i + 1));
+          i++;
+        } else {
+          clearInterval(interval);
+        }
+      }, speed);
+      return () => clearInterval(interval);
+    }, delay);
+    return () => clearTimeout(timeout);
+  }, [text, inView, delay, speed, reduced]);
+
+  return <span ref={ref}>{displayed}<span className="animate-pulse">|</span></span>;
+};
+
+const ConversationDemo = () => {
+  const { t, lang } = useLanguage();
+  const [stateIdx, setStateIdx] = useState(0);
+  const reduced = useReducedMotion();
+  useEffect(() => {
+    if (reduced) return;
+    const interval = setInterval(() => setStateIdx((i) => (i + 1) % t.demo.states.length), 1800);
+    return () => clearInterval(interval);
+  }, [t.demo.states.length, reduced]);
+  const waveBars = 56;
+  const showTranslation = lang === 'en';
+  return (
+    <Section className="py-28 md:py-40">
+      <div className="max-w-3xl mb-16">
+        <Reveal><SectionLabel number="03">{t.demo.label}</SectionLabel></Reveal>
+        <Reveal delay={0.05}><h2 className="text-[36px] md:text-[52px] leading-[1.05] tracking-[-0.03em] font-semibold gradient-text">{t.demo.title}</h2></Reveal>
+      </div>
+      <Reveal delay={0.1}>
+        <div className="premium-card rounded-3xl overflow-hidden">
+          <div className="flex items-center justify-between px-6 md:px-8 py-4 border-b border-[var(--border)]">
+            <div className="flex items-center gap-3">
+              <div className="flex gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full bg-zinc-700" />
+                <div className="w-2.5 h-2.5 rounded-full bg-zinc-700" />
+                <div className="w-2.5 h-2.5 rounded-full bg-zinc-700" />
+              </div>
+              <span className="text-[11px] text-zinc-500 font-mono tracking-wider">libera://conversation</span>
+            </div>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--accent-soft)] border border-[var(--accent-soft)]">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent-bright)] opacity-75" />
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[var(--accent-bright)]" />
+              </span>
+              <span className="text-[11px] text-[var(--accent-bright)] font-medium tracking-wide">{t.demo.badge}</span>
+            </div>
+          </div>
+          <div className="p-6 md:p-10 space-y-8">
+            <div className="flex gap-4">
+              <div className="w-10 h-10 rounded-full border border-[var(--border)] bg-[var(--bg-elev-2)] flex items-center justify-center flex-shrink-0">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-zinc-400"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" strokeLinecap="round" /></svg>
+              </div>
+              <div className="flex-1">
+                <div className="text-[10px] text-zinc-500 uppercase tracking-[0.2em] mb-2.5 font-medium">{t.demo.customerLabel}</div>
+                <div className="text-[18px] md:text-[20px] text-white leading-relaxed mb-2" lang="ja">
+                  <TypingText text={t.demo.customerJa} delay={500} speed={50} />
+                </div>
+                {showTranslation && t.demo.customerTranslation && (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2 }} className="text-[13px] text-zinc-500 italic">{t.demo.customerTranslation}</motion.div>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center justify-center gap-[2px] h-20 px-4 relative">
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(107,140,255,0.08),transparent_70%)]" />
+              {Array.from({ length: waveBars }).map((_, i) => {
+                const center = waveBars / 2;
+                const dist = Math.abs(i - center) / center;
+                const base = 0.15 + (1 - dist) * 0.85;
+                return (
+                  <div key={i} className="flex-1 max-w-[3px] rounded-full bg-gradient-to-t from-[var(--accent)] to-white/90"
+                    style={{ height: `${base * 100}%`, opacity: 0.3 + base * 0.7, animation: reduced ? 'none' : `waveform ${1.2 + (i % 5) * 0.25}s ease-in-out infinite`, animationDelay: `${i * 0.025}s` }} />
+                );
+              })}
+            </div>
+            <div className="flex flex-wrap items-center justify-center gap-1.5 py-2">
+              {t.demo.states.map((s, i) => (
+                <div key={i} className="flex items-center gap-1.5">
+                  <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-all duration-500 ${i === stateIdx ? 'bg-[var(--accent-soft)] border border-[var(--accent)]' : 'border border-transparent'}`}>
+                    <div className={`w-1.5 h-1.5 rounded-full transition-all duration-500 ${i === stateIdx ? 'bg-[var(--accent-bright)]' : 'bg-zinc-700'}`} style={i === stateIdx ? { boxShadow: '0 0 8px var(--accent-glow)' } : {}} />
+                    <span className={`text-[10px] tracking-[0.15em] uppercase transition-colors font-medium ${i === stateIdx ? 'text-[var(--accent-bright)]' : 'text-zinc-600'}`}>{s}</span>
+                  </div>
+                  {i < t.demo.states.length - 1 && <div className={`w-4 h-px transition-colors ${i < stateIdx ? 'bg-[var(--accent)]' : 'bg-zinc-800'}`} />}
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-4">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--accent-bright)] to-[var(--accent)] flex items-center justify-center flex-shrink-0 glow-accent">
+                <span className="text-[11px] font-bold text-white">L</span>
+              </div>
+              <div className="flex-1">
+                <div className="text-[10px] text-[var(--accent-bright)] uppercase tracking-[0.2em] mb-2.5 font-medium">{t.demo.agentLabel}</div>
+                <div className="text-[18px] md:text-[20px] text-white leading-relaxed mb-2" lang="ja">
+                  <TypingText text={t.demo.agentJa} delay={2500} speed={40} />
+                </div>
+                {showTranslation && t.demo.agentTranslation && (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 5 }} className="text-[13px] text-zinc-500 italic">{t.demo.agentTranslation}</motion.div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </Reveal>
+    </Section>
+  );
+};
+
+const Technology = () => {
+  const { t } = useLanguage();
+  const reduced = useReducedMotion();
+  return (
+    <Section id="technology" className="py-28 md:py-40">
+      <div className="max-w-3xl mb-20">
+        <Reveal><SectionLabel number="04">{t.tech.label}</SectionLabel></Reveal>
+        <Reveal delay={0.05}><h2 className="text-[36px] md:text-[52px] leading-[1.05] tracking-[-0.03em] font-semibold gradient-text">{t.tech.title}</h2></Reveal>
+      </div>
+      <Reveal delay={0.1}>
+        <div className="premium-card rounded-2xl p-6 md:p-10 mb-8 overflow-x-auto scrollbar-hide">
+          <div className="flex items-center gap-3 min-w-max">
+            {t.tech.pipeline.map((step, i) => (
+              <React.Fragment key={i}>
+                <motion.div initial={reduced ? {} : { opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+                  transition={{ delay: i * 0.08, duration: 0.6 }}
+                  className="px-5 py-3.5 rounded-lg border border-[var(--border-strong)] bg-[var(--bg)] text-[11px] md:text-[12px] tracking-[0.15em] text-zinc-200 font-mono whitespace-nowrap">
+                  {step}
+                </motion.div>
+                {i < t.tech.pipeline.length - 1 && (
+                  <div className="flex items-center">
+                    <div className="w-8 md:w-12 h-px bg-gradient-to-r from-[var(--accent)] to-transparent" />
+                    {!reduced && <div className="w-1 h-1 rounded-full bg-[var(--accent-bright)] -ml-0.5 animate-pulse-slow" style={{ boxShadow: '0 0 8px var(--accent-glow)' }} />}
+                  </div>
+                )}
+              </React.Fragment>
+            ))}
+          </div>
+        </div>
+      </Reveal>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-12">
+        {t.tech.ecosystem.map((item, i) => (
+          <Reveal key={i} delay={i * 0.05}>
+            <motion.div className="premium-card rounded-xl p-5 h-full cursor-default" whileHover={{ y: -4, transition: { duration: 0.3 } }}>
+              <div className="text-[14px] font-semibold text-white mb-1.5 tracking-tight">{item.name}</div>
+              <div className="text-[11px] text-zinc-500 leading-snug">{item.role}</div>
+            </motion.div>
+          </Reveal>
+        ))}
+      </div>
+      <Reveal><p className="text-[16px] text-zinc-300 italic border-l border-[var(--accent)] pl-6 max-w-2xl font-light">{t.tech.tagline}</p></Reveal>
+    </Section>
+  );
+};
+
+const Compliance = () => {
+  const { t } = useLanguage();
+  const icons = [
+    <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.2"><rect x="6" y="6" width="20" height="20" rx="2" /><path d="M11 16l3 3 7-7" strokeLinecap="round" strokeLinejoin="round" /></svg>,
+    <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.2"><path d="M6 10h20v14H6z" /><path d="M10 10V6h12v4" /><path d="M11 17h10M11 21h6" strokeLinecap="round" /></svg>,
+    <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.2"><circle cx="16" cy="16" r="10" /><path d="M16 10v6l4 2" strokeLinecap="round" /></svg>,
+    <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.2"><circle cx="12" cy="12" r="4" /><circle cx="22" cy="20" r="4" /><path d="M15 14l4 4" strokeLinecap="round" /></svg>,
+    <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.2"><path d="M16 4l10 4v8c0 6-4 10-10 12-6-2-10-6-10-12V8l10-4z" strokeLinejoin="round" /></svg>,
+  ];
+  return (
+    <Section id="compliance" className="py-28 md:py-40">
+      <div className="max-w-4xl mb-20">
+        <Reveal><SectionLabel number="05">{t.compliance.label}</SectionLabel></Reveal>
+        <Reveal delay={0.05}><h2 className="text-[36px] md:text-[52px] leading-[1.05] tracking-[-0.03em] font-semibold gradient-text mb-8">{t.compliance.title}</h2></Reveal>
+        <Reveal delay={0.1}><p className="text-[44px] md:text-[64px] font-semibold gradient-text-premium tracking-[-0.03em] leading-[1.02] mb-8">{t.compliance.statement}</p></Reveal>
+        <Reveal delay={0.15}><p className="text-[17px] text-zinc-400 leading-relaxed max-w-2xl">{t.compliance.body}</p></Reveal>
+      </div>
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
+        {t.compliance.cards.map((card, i) => (
+          <Reveal key={i} delay={i * 0.06}>
+            <div className="premium-card rounded-2xl p-8 h-full">
+              <div className="text-[var(--accent-bright)] w-9 h-9 mb-7">{icons[i]}</div>
+              <h3 className="text-[17px] font-semibold text-white mb-2.5 tracking-tight">{card.title}</h3>
+              <p className="text-[13px] text-zinc-400 leading-relaxed">{card.desc}</p>
+            </div>
+          </Reveal>
+        ))}
+      </div>
+      <Reveal>
+        <div className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-full border border-[var(--border)] bg-[var(--bg-elev)]">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-[var(--accent-bright)]"><circle cx="12" cy="12" r="10" /><path d="M12 8v4M12 16h.01" strokeLinecap="round" /></svg>
+          <span className="text-[12px] text-zinc-400">{t.compliance.note}</span>
+        </div>
+      </Reveal>
+    </Section>
+  );
+};
+
+const Workflow = () => {
+  const { t } = useLanguage();
+  const reduced = useReducedMotion();
+  return (
+    <Section className="py-28 md:py-40">
+      <div className="max-w-3xl mb-20">
+        <Reveal><SectionLabel number="06">{t.workflow.label}</SectionLabel></Reveal>
+        <Reveal delay={0.05}><h2 className="text-[36px] md:text-[52px] leading-[1.05] tracking-[-0.03em] font-semibold gradient-text mb-8">{t.workflow.title}</h2></Reveal>
+        <Reveal delay={0.1}><p className="text-[17px] text-zinc-400 leading-relaxed">{t.workflow.body}</p></Reveal>
+      </div>
+      <Reveal delay={0.15}>
+        <div className="premium-card rounded-2xl p-6 md:p-10 overflow-x-auto scrollbar-hide">
+          <div className="flex items-center gap-3 min-w-max">
+            {t.workflow.steps.map((step, i) => (
+              <React.Fragment key={i}>
+                <motion.div initial={reduced ? {} : { opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }}
+                  transition={{ delay: i * 0.1, duration: 0.6 }}>
+                  <div className="px-5 py-3.5 rounded-xl border border-[var(--border-strong)] bg-[var(--bg)] text-[11px] md:text-[12px] tracking-[0.15em] text-zinc-200 font-mono whitespace-nowrap">
+                    <span className="text-[var(--accent-bright)] mr-2.5 text-[10px] premium-number">{String(i + 1).padStart(2, '0')}</span>
+                    {step}
+                  </div>
+                </motion.div>
+                {i < t.workflow.steps.length - 1 && (
+                  <div className="flex items-center">
+                    <svg width="28" height="12" viewBox="0 0 28 12" className="text-[var(--accent)]"><path d="M0 6h24M20 2l4 4-4 4" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                  </div>
+                )}
+              </React.Fragment>
+            ))}
+          </div>
+        </div>
+      </Reveal>
+    </Section>
+  );
+};
+
+const JapanSection = () => {
+  const { t, lang } = useLanguage();
+  const reduced = useReducedMotion();
+  return (
+    <Section className="py-32 md:py-48 relative overflow-hidden">
+      <div className="absolute inset-0 opacity-30">
+        <svg width="100%" height="100%" className="absolute inset-0">
+          <defs>
+            <pattern id="seigaiha2" x="0" y="0" width="60" height="30" patternUnits="userSpaceOnUse">
+              <circle cx="30" cy="30" r="28" fill="none" stroke="rgba(107,140,255,0.15)" strokeWidth="0.5" />
+              <circle cx="30" cy="30" r="20" fill="none" stroke="rgba(107,140,255,0.1)" strokeWidth="0.5" />
+              <circle cx="30" cy="30" r="12" fill="none" stroke="rgba(107,140,255,0.08)" strokeWidth="0.5" />
+              <circle cx="0" cy="30" r="28" fill="none" stroke="rgba(107,140,255,0.15)" strokeWidth="0.5" />
+              <circle cx="60" cy="30" r="28" fill="none" stroke="rgba(107,140,255,0.15)" strokeWidth="0.5" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#seigaiha2)" />
+        </svg>
+      </div>
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[var(--bg)]" />
+      <div className="relative">
+        <Reveal><SectionLabel number="07">{t.japan.label}</SectionLabel></Reveal>
+        <Reveal delay={0.05}>
+          <h2 className="text-[44px] sm:text-[60px] md:text-[88px] lg:text-[104px] leading-[0.98] tracking-[-0.03em] font-semibold gradient-text-premium mb-8" lang={lang}>
+            <WordReveal text={t.japan.headlinePrimary} delay={0.1} />
+          </h2>
+        </Reveal>
+        <Reveal delay={0.1}>
+          <p className="text-[17px] md:text-[20px] text-zinc-500 font-light mb-16 max-w-2xl leading-snug" lang={lang === 'en' ? 'ja' : 'en'}>
+            {t.japan.headlineAccent}
+          </p>
+        </Reveal>
+
+        {!reduced && (
+          <div className="relative mb-16 overflow-hidden py-6 border-y border-[var(--border)]">
+            <div className="flex animate-marquee whitespace-nowrap">
+              {[...t.japan.points, ...t.japan.points, ...t.japan.points].map((point, i) => (
+                <span key={i} className="mx-8 text-[24px] md:text-[32px] font-light text-zinc-600 tracking-tight">
+                  {point} <span className="text-[var(--accent)] mx-8">◆</span>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-3">
+          {t.japan.points.map((point, i) => (
+            <Reveal key={i} delay={0.15 + i * 0.05}>
+              <motion.div className="premium-card rounded-xl p-5 h-full" whileHover={{ y: -4, transition: { duration: 0.3 } }}>
+                <div className="text-[10px] font-mono text-[var(--accent-bright)] mb-3 tracking-widest premium-number">{String(i + 1).padStart(2, '0')}</div>
+                <div className="text-[13px] text-zinc-200 leading-snug">{point}</div>
+              </motion.div>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </Section>
+  );
+};
+
+const Company = () => {
+  const { t } = useLanguage();
+  return (
+    <Section id="company" className="py-28 md:py-40">
+      <div className="grid lg:grid-cols-2 gap-16 lg:gap-24">
+        <div>
+          <Reveal><SectionLabel number="08">{t.company.label}</SectionLabel></Reveal>
+          <Reveal delay={0.05}><h2 className="text-[36px] md:text-[48px] leading-[1.05] tracking-[-0.03em] font-semibold gradient-text mb-8">{t.company.title}</h2></Reveal>
+          <Reveal delay={0.1}><p className="text-[17px] text-zinc-400 leading-relaxed">{t.company.body}</p></Reveal>
+        </div>
+        <div className="premium-card rounded-2xl overflow-hidden h-fit">
+          {t.company.facts.map((fact, i) => (
+            <Reveal key={i} delay={0.1 + i * 0.05}>
+              <motion.div className={`flex items-baseline justify-between px-7 py-6 ${i !== t.company.facts.length - 1 ? 'border-b border-[var(--border)]' : ''}`}
+                whileHover={{ backgroundColor: 'rgba(107,140,255,0.03)' }} transition={{ duration: 0.3 }}>
+                <span className="text-[11px] tracking-[0.2em] text-zinc-500 uppercase font-medium">{fact.label}</span>
+                <span className="text-[14px] text-white font-medium text-right">{fact.value}</span>
+              </motion.div>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </Section>
+  );
+};
+
+const Investors = () => {
+  const { t } = useLanguage();
+  return (
+    <Section className="py-28 md:py-40">
+      <div className="max-w-3xl mb-20">
+        <Reveal><SectionLabel number="09">{t.investors.label}</SectionLabel></Reveal>
+        <Reveal delay={0.05}><h2 className="text-[36px] md:text-[48px] leading-[1.05] tracking-[-0.03em] font-semibold gradient-text">{t.investors.title}</h2></Reveal>
+      </div>
+      <div className="grid md:grid-cols-2 gap-5">
+        <Reveal delay={0.1}>
+          <div className="premium-card rounded-2xl p-9">
+            <div className="premium-label mb-8">{t.investors.investorsLabel}</div>
+            <div className="flex flex-wrap gap-3">
+              {t.investors.investors.map((inv, i) => (
+                <motion.div key={i} className="px-6 py-3.5 rounded-xl border border-[var(--border-strong)] bg-[var(--bg)]"
+                  whileHover={{ scale: 1.03, borderColor: 'rgba(107,140,255,0.4)' }} transition={{ duration: 0.3 }}>
+                  <span className="text-[17px] font-semibold text-white tracking-wide">{inv}</span>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </Reveal>
+        <Reveal delay={0.15}>
+          <div className="premium-card rounded-2xl p-9">
+            <div className="premium-label mb-8">{t.investors.validationLabel}</div>
+            <ul className="space-y-5">
+              {t.investors.validation.map((v, i) => (
+                <motion.li key={i} className="flex gap-3.5 text-[14px] text-zinc-300 leading-relaxed"
+                  initial={{ opacity: 0, x: -10 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-[var(--accent-bright)] flex-shrink-0 mt-0.5"><path d="M5 12l5 5L20 7" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                  <span>{v}</span>
+                </motion.li>
+              ))}
+            </ul>
+          </div>
+        </Reveal>
+      </div>
+    </Section>
+  );
+};
+
+const Careers = () => {
+  const { t } = useLanguage();
+  return (
+    <Section id="careers" className="py-28 md:py-40">
+      <div className="max-w-3xl mb-20">
+        <Reveal><SectionLabel number="10">{t.careers.label}</SectionLabel></Reveal>
+        <Reveal delay={0.05}><h2 className="text-[36px] md:text-[52px] leading-[1.05] tracking-[-0.03em] font-semibold gradient-text mb-8">{t.careers.title}</h2></Reveal>
+        <Reveal delay={0.1}><p className="text-[17px] text-zinc-400 leading-relaxed">{t.careers.body}</p></Reveal>
+      </div>
+      <div className="grid lg:grid-cols-2 gap-5">
+        <Reveal delay={0.1}>
+          <div className="premium-card animated-border shine-hover rounded-2xl p-9 md:p-10 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-80 h-80 bg-[radial-gradient(circle,rgba(107,140,255,0.1),transparent_70%)]" />
+            <div className="relative">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--accent-soft)] border border-[var(--accent-soft)] mb-8">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent-bright)] opacity-75" />
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[var(--accent-bright)]" />
+                </span>
+                <span className="text-[10px] text-[var(--accent-bright)] tracking-[0.2em] uppercase font-medium">{t.careers.featuredLabel}</span>
+              </div>
+              <h3 className="text-[26px] md:text-[30px] font-semibold text-white mb-7 tracking-tight leading-tight">{t.careers.role.title}</h3>
+              <div className="flex flex-wrap gap-2 mb-9">
+                {t.careers.role.keywords.map((kw, i) => (
+                  <motion.span key={i} className="px-3 py-1.5 text-[11px] text-zinc-400 border border-[var(--border)] rounded-full bg-[var(--bg)]"
+                    initial={{ opacity: 0, scale: 0.8 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }}>
+                    {kw}
+                  </motion.span>
+                ))}
+              </div>
+              <a href="#careers" className="inline-flex items-center gap-2 text-[13px] text-[var(--accent-bright)] hover:gap-3 transition-all font-medium">
+                {t.careers.role.cta}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M5 12h14M13 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" /></svg>
+              </a>
+            </div>
+          </div>
+        </Reveal>
+        <Reveal delay={0.15}>
+          <div className="premium-card rounded-2xl p-9 md:p-10 flex flex-col justify-between h-full">
+            <div>
+              <div className="premium-label mb-6">{t.careers.recruitmentLabel}</div>
+              <h3 className="text-[26px] md:text-[30px] font-semibold text-white mb-4 tracking-tight leading-tight">{t.careers.recruit.title}</h3>
+            </div>
+            <MagneticButton href="#careers" className="inline-flex items-center gap-2 text-[13px] text-white btn-secondary px-6 py-3 rounded-full w-fit font-medium" strength={0.15}>
+              {t.careers.recruit.cta}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M5 12h14M13 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            </MagneticButton>
+          </div>
+        </Reveal>
+      </div>
+    </Section>
+  );
+};
+
+const FinalCTA = () => {
+  const { t } = useLanguage();
+  const reduced = useReducedMotion();
+  return (
+    <section id="contact" className="relative py-40 md:py-56 overflow-hidden">
+      <div className="absolute inset-0">
+        <ParticleField />
+      </div>
+      <div className="absolute inset-0 bg-gradient-to-b from-[var(--bg)] via-transparent to-[var(--bg)]" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[radial-gradient(circle,rgba(107,140,255,0.08),transparent_60%)] pointer-events-none" />
+
+      <div className="relative mx-auto max-w-[1400px] px-6 md:px-10 lg:px-16 text-center">
+        <Reveal>
+          <h2 className="text-[44px] sm:text-[60px] md:text-[80px] lg:text-[96px] leading-[1.02] tracking-[-0.03em] font-semibold gradient-text-premium mb-10">
+            <WordReveal text={t.cta.title} delay={0.1} />
+          </h2>
+        </Reveal>
+        <Reveal delay={0.1}>
+          <p className="text-[17px] md:text-[19px] text-zinc-400 max-w-xl mx-auto mb-14 leading-relaxed font-light">{t.cta.body}</p>
+        </Reveal>
+        <Reveal delay={0.2}>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <MagneticButton href="#contact" className="btn-primary px-9 py-4 text-[14px] font-medium rounded-full" strength={0.2}>
+              {t.cta.primary}
+            </MagneticButton>
+            <MagneticButton href="#careers" className="btn-secondary px-9 py-4 text-[14px] font-medium rounded-full" strength={0.2}>
+              {t.cta.secondary}
+            </MagneticButton>
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  );
+};
+
+const Footer = () => {
+  const { lang, setLang, t } = useLanguage();
+  const links = [
+    { key: 'product', href: '#product' }, { key: 'technology', href: '#technology' },
+    { key: 'compliance', href: '#compliance' }, { key: 'company', href: '#company' }, { key: 'careers', href: '#careers' },
+  ];
+  return (
+    <footer className="border-t border-[var(--border)] bg-[var(--bg-elev)] relative">
+      <div className="mx-auto max-w-[1400px] px-6 md:px-10 lg:px-16 py-20">
+        <div className="grid md:grid-cols-4 gap-12 mb-16">
+          <div className="md:col-span-2">
+            <div className="flex items-center gap-2.5 mb-6">
+              <div className="relative w-8 h-8">
+                <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-white via-zinc-200 to-zinc-500 opacity-90" />
+                <div className="absolute inset-[1.5px] rounded-[6px] bg-[var(--bg-elev)] flex items-center justify-center">
+                  <span className="text-[11px] font-bold tracking-tight text-white">L</span>
+                </div>
+              </div>
+              <span className="text-[14px] font-semibold tracking-[0.25em] text-white">LIBERA</span>
+            </div>
+            <p className="text-[14px] text-zinc-400 max-w-sm leading-relaxed mb-8">{t.footer.tagline}</p>
+            <button onClick={() => setLang(lang === 'en' ? 'ja' : 'en')}
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 text-[12px] text-zinc-400 hover:text-white border border-[var(--border)] hover:border-[var(--border-strong)] rounded-full transition-all duration-300 hover:bg-white/[0.02]"
+              aria-label="Switch language">
+              <span className={lang === 'en' ? 'text-white font-medium' : ''}>EN</span>
+              <span className="text-zinc-700">/</span>
+              <span className={lang === 'ja' ? 'text-white font-medium' : ''}>日本語</span>
+            </button>
+          </div>
+          <div>
+            <div className="premium-label mb-5">{t.footer.navLabel}</div>
+            <ul className="space-y-3">
+              {links.map((l) => (
+                <li key={l.key}><a href={l.href} className="text-[13px] text-zinc-400 hover:text-white transition-colors duration-300">{t.nav[l.key]}</a></li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <div className="premium-label mb-5">{t.footer.legalLabel}</div>
+            <ul className="space-y-3">
+              <li><a href="#privacy" className="text-[13px] text-zinc-400 hover:text-white transition-colors duration-300">{t.footer.privacy}</a></li>
+              <li><a href="#terms" className="text-[13px] text-zinc-400 hover:text-white transition-colors duration-300">{t.footer.terms}</a></li>
+            </ul>
+          </div>
+        </div>
+        <div className="pt-8 border-t border-[var(--border)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <span className="text-[12px] text-zinc-500">{t.footer.copyright}</span>
+          <span className="text-[11px] text-zinc-600 tracking-[0.2em]">{t.footer.location}</span>
+        </div>
+      </div>
+    </footer>
+  );
+};
+
+const AppContent = () => {
+  const { t } = useLanguage();
+  const [introComplete, setIntroComplete] = useState(false);
+  const reduced = useReducedMotion();
+
+  useEffect(() => {
+    if (reduced) setIntroComplete(true);
+  }, [reduced]);
+
+  useEffect(() => {
+    document.title = t.meta.title;
+    let desc = document.querySelector('meta[name="description"]');
+    if (!desc) { desc = document.createElement('meta'); desc.setAttribute('name', 'description'); document.head.appendChild(desc); }
+    desc.setAttribute('content', t.meta.description);
+  }, [t.meta]);
+
+  return (
+    <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] relative">
+      <div className="noise-overlay" />
+      <AmbientBackground />
+
+      <AnimatePresence>
+        {!introComplete && (
+          <IntroAnimation onComplete={() => setIntroComplete(true)} />
+        )}
+      </AnimatePresence>
+
+      <motion.div
+        className="relative"
+        style={{ zIndex: 2 }}
+        initial={{ opacity: 0, scale: 1.02, filter: 'blur(8px)' }}
+        animate={introComplete ? {
+          opacity: 1,
+          scale: 1,
+          filter: 'blur(0px)',
+        } : {}}
+        transition={{
+          duration: 1.4,
+          delay: introComplete ? 0.2 : 0,
+          ease: [0.22, 1, 0.36, 1]
+        }}
+      >
+        <ScrollProgress />
+        <Navbar />
+        <main>
+          <Hero />
+          <div className="section-divider" />
+          <Metrics />
+          <div className="section-divider" />
+          <Problem />
+          <div className="section-divider" />
+          <Product />
+          <div className="section-divider" />
+          <ConversationDemo />
+          <div className="section-divider" />
+          <Technology />
+          <div className="section-divider" />
+          <Compliance />
+          <div className="section-divider" />
+          <Workflow />
+          <div className="section-divider" />
+          <JapanSection />
+          <div className="section-divider" />
+          <Company />
+          <div className="section-divider" />
+          <Investors />
+          <div className="section-divider" />
+          <Careers />
+          <FinalCTA />
+        </main>
+        <Footer />
+      </motion.div>
+    </div>
+  );
+};
+
+export default function App() {
+  return (
+    <LanguageProvider>
+      <GlobalStyles />
+      <AppContent />
+    </LanguageProvider>
+  );
+}
